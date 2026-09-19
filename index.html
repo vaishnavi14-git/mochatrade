@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MochaTrade Learn — Market Practice Sandbox</title>
+<style>
+:root{
+  --bg:#f3e7d3;--panel:#fffaf2;--panel2:#ead8c0;--text:#3b281c;--muted:#7b6655;
+  --line:#d7c1a7;--cyan:#9a6b3f;--purple:#b98b62;--green:#6f7d52;--red:#a9573f;
+  --yellow:#b8893f;--shadow:0 18px 50px rgba(91,61,35,.16);
+}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:
+radial-gradient(circle at 10% 0%,#182554 0,transparent 32%),radial-gradient(circle at 90% 15%,#24134e 0,transparent 30%),var(--bg);color:var(--text)}
+button,input,select{font:inherit} button{cursor:pointer}
+.app{display:grid;grid-template-columns:245px 1fr;min-height:100vh}
+aside{border-right:1px solid var(--line);padding:22px 16px;background:rgba(255,250,242,.88);backdrop-filter:blur(18px);position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:20px;margin-bottom:26px}
+.logo{width:38px;height:38px;border-radius:13px;background:linear-gradient(135deg,#a8754a,#c9a47a);display:grid;place-items:center;color:#fffaf2;font-weight:1000}
+.nav button{display:block;width:100%;text-align:left;padding:12px 14px;margin:5px 0;border:0;background:transparent;color:var(--muted);border-radius:12px}
+.nav button:hover,.nav button.active{background:#ead8c0;color:#3b281c}
+.nav small{display:block;color:#65739a;margin:22px 10px 7px}
+.demo-note{margin-top:28px;padding:14px;border:1px solid #2b4075;border-radius:16px;background:#f8efe2;font-size:12px;color:var(--muted);line-height:1.5}
+main{padding:24px;max-width:1500px;width:100%;margin:auto}
+.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px}
+.pill{padding:8px 12px;border:1px solid var(--line);border-radius:999px;color:#8b5e34;background:#f8efe2;font-size:12px}
+.hero{padding:26px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(135deg,#ead8c0,#f7ecdd);box-shadow:var(--shadow);display:flex;justify-content:space-between;gap:24px;align-items:center}
+.hero h1{font-size:clamp(28px,4vw,52px);line-height:1;margin:0 0 12px}.hero p{color:var(--muted);max-width:700px;line-height:1.6}
+.btn{border:0;border-radius:13px;padding:12px 16px;font-weight:800;background:linear-gradient(135deg,var(--cyan),#79a6ff);color:#061020}
+.btn.alt{background:#e6d2b7;color:#3b281c;border:1px solid #304274}.btn.danger{background:linear-gradient(135deg,#a9573f,#c97858);color:#fff8f0}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}
+.card{background:rgba(255,250,242,.92);border:1px solid var(--line);border-radius:18px;padding:17px;box-shadow:0 10px 30px rgba(0,0,0,.16)}
+.stat b{display:block;font-size:26px;margin:7px 0}.muted{color:var(--muted);font-size:13px}.up{color:var(--green)}.down{color:var(--red)}
+.section{margin-top:18px}.section h2{margin:0 0 12px}
+.two{display:grid;grid-template-columns:1.5fr 1fr;gap:16px}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+canvas{width:100%;height:300px;background:#f7eee2;border-radius:14px}
+.chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.tabs{display:flex;gap:8px;overflow:auto;margin:18px 0}.tab{padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:#f8efe2;color:var(--muted);white-space:nowrap}.tab.active{background:#d9bea0;color:#3b281c}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+input[type=range]{width:100%;accent-color:#65dfff}
+input[type=number],select{width:100%;background:#f4e8d8;color:#3b281c;border:1px solid var(--line);padding:11px;border-radius:10px}
+.trade{display:grid;grid-template-columns:1fr 310px;gap:16px}
+.orderbox{position:sticky;top:20px}
+.sidebuttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}.buy{background:#dfe7cf!important;color:#4e6437!important}.sell{background:#ead1c7!important;color:#8f4937!important}
+.bigprice{font-size:34px;font-weight:900}.row{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:12px 0}.divider{height:1px;background:var(--line);margin:14px 0}
+.badge{padding:5px 8px;border-radius:8px;font-size:11px;background:#eadbc8;color:#725b45}
+.info{border-left:3px solid #a8754a;padding:10px 12px;background:#f1e5d6;color:#725b45;border-radius:8px;font-size:13px;line-height:1.5}
+.alert{border-left:3px solid #b8893f;padding:12px;background:#f2e4c9;color:#765b35;border-radius:8px;font-size:13px}
+.progress{height:8px;background:#e4d3bd;border-radius:20px;overflow:hidden}.progress span{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple))}
+.kpi{font-size:30px;font-weight:900}
+.faq details{border:1px solid var(--line);background:#f8efe2;border-radius:12px;margin:8px 0;padding:13px}.faq summary{cursor:pointer;font-weight:700}.faq p{color:var(--muted);line-height:1.55}
+.table{width:100%;border-collapse:collapse}.table th,.table td{padding:11px;border-bottom:1px solid var(--line);text-align:left;font-size:13px}.table th{color:#8ea1ce}
+.hidden{display:none!important}
+.toast{position:fixed;right:22px;bottom:22px;background:#f2e3d1;border:1px solid #c5a98a;padding:14px 16px;border-radius:13px;box-shadow:var(--shadow);max-width:330px;z-index:10}
+footer{padding:35px 0;color:#68779f;font-size:12px}
+@media(max-width:1000px){.app{grid-template-columns:1fr}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}.nav{display:flex;overflow:auto}.nav button{min-width:max-content}.demo-note{display:none}.grid{grid-template-columns:repeat(2,1fr)}.two,.trade{grid-template-columns:1fr}.orderbox{position:static}}
+@media(max-width:620px){main{padding:14px}.grid,.three{grid-template-columns:1fr}.hero{display:block}.actions{margin-top:18px}}
+</style>
+
+<style id="real-market-css">
+.market-mode{margin-top:16px;padding:18px;border:1px solid #304274;border-radius:18px;background:linear-gradient(135deg,#101b38,#171431)}
+.market-mode h3{margin:0 0 6px}.company-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.company{padding:13px;border:1px solid var(--line);border-radius:14px;background:#f7eee2;cursor:pointer}.company:hover{border-color:#8b5e34}
+.company .ticker{font-weight:900}.company .cp{font-size:20px;font-weight:800;margin-top:6px}.company .change{font-size:12px}
+.real-trade-panel{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;margin-top:14px}
+.mode-badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#efe0c4;color:#805f32;font-size:11px;font-weight:800}
+.saved{color:var(--green);font-size:12px}
+@media(max-width:800px){.company-grid,.real-trade-panel{grid-template-columns:1fr}}
+</style>
+
+<style id="market-realism-css">
+.market-terminal{display:grid;grid-template-columns:1fr 300px;gap:14px;margin-top:14px}
+.market-topbar{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.live-dot{display:inline-flex;align-items:center;gap:7px;color:#7ff1bd;font-size:12px;font-weight:800}
+.live-dot:before{content:"";width:8px;height:8px;border-radius:50%;background:#49e29b;box-shadow:0 0 12px #49e29b}
+.market-statline{display:flex;gap:18px;flex-wrap:wrap}
+.market-statline span{font-size:12px;color:var(--muted)}
+.market-statline b{color:#3b281c;margin-left:5px}
+.watchlist{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.watchitem{padding:11px;border:1px solid var(--line);border-radius:12px;background:#f7eee2;cursor:pointer}
+.watchitem:hover{border-color:#8b5e34;transform:translateY(-1px)}
+.watchitem strong{display:block}.watchitem small{color:var(--muted)}
+.depth{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.depthbox{background:#f4e8d8;border:1px solid var(--line);border-radius:12px;padding:10px}
+.depthrow{display:flex;justify-content:space-between;font-size:11px;padding:4px 0}
+.ask{color:#ff8ca1}.bid{color:#7ff1bd}
+.cash-card{border:1px solid #38518b!important;background:linear-gradient(135deg,#101e40,#121936)!important}
+.cash-big{font-size:30px;font-weight:950;color:#7ff1bd}
+@media(max-width:900px){.market-terminal{grid-template-columns:1fr}.watchlist{grid-template-columns:1fr 1fr}}
+</style>
+
+<style id="level-gate-css">
+.level-gate-backdrop{position:fixed;inset:0;background:rgba(3,7,20,.78);backdrop-filter:blur(10px);display:grid;place-items:center;z-index:100;padding:18px}
+.level-gate{width:min(760px,100%);max-height:90vh;overflow:auto;background:linear-gradient(145deg,#111b3b,#0d142d);border:1px solid #38518b;border-radius:24px;box-shadow:0 25px 80px rgba(0,0,0,.5);padding:26px}
+.level-gate h2{margin:0 0 8px;font-size:30px}.level-gate p{color:var(--muted);line-height:1.55}.level-gate-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.level-close{border:1px solid var(--line);background:#121d3b;color:#3b281c;border-radius:10px;padding:8px 11px;font-size:18px}.level-options{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}.level-option{border:1px solid var(--line);border-radius:17px;padding:17px;background:#f7eee2}.level-option h3{margin:0 0 7px}.level-option p{font-size:13px;margin:0 0 15px}.plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:15px}.plan{border:1px solid #304274;border-radius:16px;padding:16px;background:#f7eee2}.plan.featured{border-color:#8b5e34}.plan .price{font-size:26px;font-weight:900;margin:8px 0}.plan ul{padding-left:18px;color:var(--muted);font-size:13px;line-height:1.6}.payment-note{font-size:12px;color:#8ea1ce;margin-top:12px}
+@media(max-width:760px){.level-options,.plan-grid{grid-template-columns:1fr}.level-gate{padding:20px}}
+
+.referral-share-status{margin-top:10px;font-size:12px;color:#7ff1bd;min-height:18px}.referral-banner{margin-top:14px;padding:12px 14px;border:1px solid #38518b;border-radius:12px;background:#f1e5d6;color:#725b45}.referral-banner b{color:#3b281c}
+
+/* Warm brown & beige visual theme — layout and functionality unchanged */
+body{background:radial-gradient(circle at 10% 0%,#ead8c0 0,transparent 32%),radial-gradient(circle at 90% 15%,#e8d2b8 0,transparent 30%),var(--bg);color:var(--text)}
+aside{background:rgba(255,250,242,.9);border-color:var(--line)}
+.nav button:hover,.nav button.active{background:#ead8c0;color:#3b281c}
+.demo-note{background:#f8efe2;border-color:#d5bfa5}
+.pill,.tab,.badge{background:#f8efe2;border-color:#d7c1a7;color:#7b5b3d}
+.hero{background:linear-gradient(135deg,#ead8c0,#f7ecdd);border-color:#d7c1a7}
+.card,.faq details{background:rgba(255,250,242,.94);border-color:#d7c1a7}
+canvas{background:#f7eee2}
+input[type=number],select{background:#f4e8d8;color:#3b281c;border-color:#d7c1a7}
+.market-mode{background:linear-gradient(135deg,#ead8c0,#f7ecdd);border-color:#d2b89a}
+.company,.watchitem{background:#f7eee2;border-color:#d7c1a7}
+.cash-card{background:linear-gradient(135deg,#f0e1cf,#f8efe2)!important;border-color:#c8aa8a!important}
+.depthbox{background:#f4e8d8;border-color:#d7c1a7}
+.orderbox .btn.alt,.btn.alt{background:#e6d2b7;color:#3b281c;border-color:#cdb395}
+.toast{background:#f2e3d1;border-color:#c5a98a;color:#3b281c}
+.progress{background:#e4d3bd}
+.table th,.table td{border-color:#dfcdb7}
+.info{background:#f1e5d6;color:#725b45}
+.alert{background:#f2e4c9;color:#765b35}
+.market-mode h3,.card h2,.card h3,.hero h1{color:#3b281c}
+</style>
+
+<style id="warm-primary-buttons-css">
+/* Warm brown primary buttons site-wide, matching the lesson button palette */
+.btn:not(.alt):not(.danger) {
+  background:linear-gradient(135deg,#9a6b3f,#b8895f)!important;
+  color:#fffaf2!important;
+  border:1px solid #85562f!important;
+  box-shadow:0 6px 16px rgba(133,86,47,.22);
+}
+.btn:not(.alt):not(.danger):hover {
+  background:linear-gradient(135deg,#85562f,#a8754a)!important;
+  transform:translateY(-1px);
+}
+</style>
+
+<style id="learn-brown-buttons-css">
+/* Warm brown highlights for lesson buttons — no blue tones */
+#learn .btn {
+  background:linear-gradient(135deg,#9a6b3f,#b8895f);
+  color:#fffaf2;
+  border:1px solid #85562f;
+  box-shadow:0 6px 16px rgba(133,86,47,.22);
+}
+#learn .btn:hover:not(:disabled) {
+  background:linear-gradient(135deg,#85562f,#a8754a);
+  transform:translateY(-1px);
+  box-shadow:0 8px 20px rgba(133,86,47,.28);
+}
+#learn .btn:focus-visible {
+  outline:3px solid #d9b58f;
+  outline-offset:2px;
+}
+#learn .btn:disabled {
+  background:#c8aa8a;
+  color:#fffaf2;
+  border-color:#b18d6d;
+}
+.basics-videos { margin-top:18px; }
+.video-links { display:grid; gap:10px; margin-top:14px; }
+.video-links a {
+  display:flex; justify-content:space-between; align-items:center; gap:14px;
+  padding:13px 15px; border:1px solid #d7c1a7; border-radius:13px;
+  background:#f7eee2; color:#3b281c; text-decoration:none;
+  transition:.18s ease;
+}
+.video-links a:hover { border-color:#9a6b3f; background:#ead8c0; transform:translateY(-1px); }
+.video-links b { color:#8b5e34; font-size:12px; white-space:nowrap; }
+
+/* Practice Market: keep LONG/SHORT buttons brown, with only the label carrying the side color. */
+.sidebuttons .btn.buy {
+  background:linear-gradient(135deg,#8b5e34,#b47b4f)!important;
+  color:#4e7a35!important;
+  border:1px solid #76502f!important;
+}
+.sidebuttons .btn.sell {
+  background:linear-gradient(135deg,#8b5e34,#b47b4f)!important;
+  color:#a9573f!important;
+  border:1px solid #76502f!important;
+}
+</style>
+
+<style id="user-manual-button-css">
+.user-manual-btn{
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+  <div class="brand"><div class="logo">M</div> MochaTrade <span class="badge">LEARN</span></div>
+  <div class="nav">
+    <small>LEARN</small>
+    <button class="active" data-page="home">🏠 Start Here</button>
+    <button data-page="learn">🧠 Learn the Basics</button>
+    <button data-page="trade">🎮 Practice Market</button>
+    <button data-page="portfolio">📊 My Portfolio</button>
+    <button data-page="trust">🛡️ Trust Centre</button>
+    <button data-page="referral">🎁 Referral</button>
+    <button data-page="faq">❓ FAQs</button>
+  </div>
+  <div class="demo-note"><b>Practice only</b><br>This sandbox uses virtual currency. No real money, deposits, withdrawals, or real trades are involved.<br><br><span>Built as a hackathon prototype.</span></div>
+</aside>
+
+<main>
+<div class="top"><div><span class="pill">SIMULATION MODE • ₹10,000 virtual balance</span></div><div id="clock" class="muted"></div></div>
+
+<section id="home" class="page">
+  <div class="hero">
+    <div><h1>Learn markets.<br><span style="color:#8b5e34">Without risking money.</span></h1>
+    <p>A beginner-friendly trading simulator designed to let a first-time user learn the market, test decisions, understand leverage and build confidence before ever considering real trading.</p>
+    <div class="actions"><button class="btn" onclick="go('learn')">Start the 3-minute lesson →</button><button class="btn alt" onclick="go('trade')">Jump into practice</button><a class="btn user-manual-btn" href="https://drive.google.com/file/d/1JXtF2PeDxT-EzpYaKaKNGsZcnjKJwveZ/view?usp=drive_link" target="_blank" rel="noopener noreferrer">📖 User Manual</a></div></div>
+    <div class="card" style="min-width:220px"><div class="muted">Your learning wallet</div><div class="kpi">₹10,000</div><div class="up">100% virtual • reset anytime</div></div>
+  </div>
+  <div class="grid">
+    <div class="card stat"><div class="muted">Lesson progress</div><b id="homeProgress">0%</b><div class="progress"><span id="progressBar" style="width:0%"></span></div></div>
+    <div class="card stat"><div class="muted">Practice trades</div><b id="tradeCount">0</b><span class="muted">Your decisions, not real orders</span></div>
+    <div class="card stat"><div class="muted">Virtual P&L</div><b id="pnl">₹0</b><span class="muted">Changes as you practice</span></div>
+    <div class="card stat"><div class="muted">Confidence</div><b id="confidence">Beginner</b><span class="muted">Based on learning milestones</span></div>
+  </div>
+  <div class="section two">
+    <div class="card"><h2>🎯 Your first session</h2>
+      <div class="row"><span>1. Understand price, position & margin</span><span class="badge">2 min</span></div>
+      <div class="row"><span>2. Try a risk-free practice trade</span><span class="badge">3 min</span></div>
+      <div class="row"><span>3. See what leverage changes</span><span class="badge">2 min</span></div>
+      <div class="row"><span>4. Review what happened</span><span class="badge">1 min</span></div>
+    </div>
+    <div class="card"><h2>💡 Beginner rule</h2><p class="muted">If you don't understand a button, don't press it. Every major action in this simulator explains what it does before you commit.</p><div class="info">This is an educational simulation, not investment advice.</div></div>
+  </div>
+</section>
+
+<section id="learn" class="page hidden">
+  <div class="hero"><div><h1>Market basics, <span style="color:#8b5e34">without the jargon.</span></h1><p>Learn one idea at a time. Finish each card to unlock the practice market.</p></div></div>
+  <div class="three section">
+    <div class="card lesson" data-lesson="1"><h2>01 • Price</h2><p class="muted">The market price is simply the current price at which the simulated asset is trading.</p><div class="info">Think: “What is one unit worth right now?”</div><button class="btn" onclick="completeLesson(this,1)">I understand</button></div>
+    <div class="card lesson" data-lesson="2"><h2>02 • Long</h2><p class="muted">A long position is a practice bet that the price will rise. If the simulated price rises after you enter, the position gains value.</p><div class="info">Long = expecting ↑</div><button class="btn" onclick="completeLesson(this,2)">I understand</button></div>
+    <div class="card lesson" data-lesson="3"><h2>03 • Short</h2><p class="muted">A short position is a practice bet that the price will fall. If the simulated price falls after you enter, the position gains value.</p><div class="info">Short = expecting ↓</div><button class="btn" onclick="completeLesson(this,3)">I understand</button></div>
+  </div>
+  <div class="three section">
+    <div class="card"><h2>04 • Margin</h2><p class="muted">Margin is the virtual amount allocated to support a leveraged position.</p><div class="alert">More leverage can make gains and losses change faster.</div><button class="btn" onclick="completeLesson(this,4)">I understand</button></div>
+    <div class="card"><h2>05 • Liquidation</h2><p class="muted">In this simulation, liquidation is a risk event where a leveraged position loses enough value that the simulator closes it.</p><div class="alert">Leverage does not remove risk.</div><button class="btn" onclick="completeLesson(this,5)">I understand</button></div>
+    <div class="card"><h2>06 • Fees</h2><p class="muted">A real platform can charge trading fees. Here, fees are simulated so you can understand their effect.</p><div class="info">Always know the cost before trading.</div><button class="btn" onclick="completeLesson(this,6)">I understand</button></div>
+  </div>
+  <div class="section card basics-videos">
+    <h2>🎥 Learn the Basics — Watch & Learn</h2>
+    <p class="muted">Continue learning with these beginner-friendly videos.</p>
+    <div class="video-links">
+      <a href="https://youtu.be/vJabNEwZIuc?si=YBGRkvzkP5tCrAqH" target="_blank" rel="noopener noreferrer"><span>Master Financial Literary</span><b>▶ Watch</b></a>
+      <a href="https://youtu.be/RFP3ooXIiyI?si=5VXu0yGWI05TjJY9" target="_blank" rel="noopener noreferrer"><span>Stock Market Basics for Beginners</span><b>▶ Watch</b></a>
+      <a href="https://youtu.be/1HU70W_NWQY?si=yo-tH6vX6vIp17y5" target="_blank" rel="noopener noreferrer"><span>How To Invest Better</span><b>▶ Watch</b></a>
+    </div>
+  </div>
+</section>
+
+<section id="trade" class="page hidden">
+  <div class="hero"><div><h1>Practice Market 🎮</h1><p>Everything here is simulated. You start with ₹10,000 virtual money. Try a trade, change leverage, watch the price move and learn from the result.</p></div><button class="btn alt" onclick="resetGame()">↻ Reset simulation</button></div>
+  <div class="trade section">
+    <div>
+      <div class="card">
+        <div class="chart-head"><div><span class="muted">BTC-PERP • simulated</span><div class="bigprice" id="price">₹9,200,000</div></div><span id="tick" class="up">+0.00%</span></div>
+        <canvas id="chart" width="900" height="300"></canvas>
+      </div>
+      <div class="card section"><h2>Market mood</h2><div class="row"><span>Calm</span><span id="moodText">Balanced</span><span>Volatile</span></div><input id="mood" type="range" min="0" max="100" value="35" oninput="setMood(this.value)"><p class="muted">Move the slider to simulate a calmer or more volatile market.</p></div>
+    </div>
+    <div class="card orderbox">
+      <h2>Your practice order</h2>
+      <div class="row"><span>Virtual balance</span><b id="balance">₹10,000</b></div>
+      <div class="divider"></div>
+      <label>Margin to use</label><input id="margin" type="number" min="100" max="10000" step="100" value="1000">
+      <label style="margin-top:12px">Leverage: <b id="levLabel">2x</b></label><input id="lev" type="range" min="1" max="20" value="2" oninput="updateOrder()">
+      <div class="row"><span>Position size</span><b id="size">₹2,000</b></div>
+      <div class="row"><span>Simulated risk level</span><span id="risk" class="badge">Low</span></div>
+      <div class="sidebuttons"><button class="btn buy" onclick="placeTrade('LONG')">↑ LONG</button><button class="btn sell" onclick="placeTrade('SHORT')">↓ SHORT</button></div>
+      <div class="info" style="margin-top:12px">Before entering, ask: “How much virtual money am I willing to lose while learning?”</div>
+      <div id="positionBox" class="hidden" style="margin-top:14px"><div class="divider"></div><b>Open position</b><div id="positionText" class="muted"></div><button class="btn alt" style="width:100%;margin-top:10px" onclick="closePosition()">Close position</button></div>
+    </div>
+  </div>
+  
+
+<div id="marketModePanel" class="market-mode">
+  <div class="market-topbar">
+    <div><span class="mode-badge">PAPER TRADING • VIRTUAL CASH</span>
+      <div class="live-dot" style="margin-top:8px">SIMULATED MARKET OPEN</div>
+    </div>
+    <div class="market-statline">
+      <span>Cash <b id="terminalCash">₹10,000</b></span>
+      <span>Portfolio <b id="terminalPortfolio">₹10,000</b></span>
+      <span>Total <b id="terminalTotal">₹10,000</b></span>
+    </div>
+  </div>
+
+  <div class="market-terminal">
+    <div>
+      <div class="card cash-card">
+        <div class="market-topbar">
+          <div><span class="muted">MARKET WATCH • SIMULATED PRICES</span><h3 style="margin:5px 0 0">Explore the market</h3></div>
+          <span class="badge">24/7 practice</span>
+        </div>
+        <div class="watchlist" id="watchlist"></div>
+      </div>
+
+      <div class="card section">
+        <div class="chart-head">
+          <div><span class="muted" id="selectedCompany">Select a company</span><div class="bigprice" id="companyPrice">—</div></div>
+          <div style="text-align:right"><span id="companyChange">—</span><div class="muted">Simulated session</div></div>
+        </div>
+        <canvas id="companyChart" width="900" height="300"></canvas>
+        <div class="market-statline" style="margin-top:10px">
+          <span>Open <b id="mOpen">—</b></span>
+          <span>High <b id="mHigh">—</b></span>
+          <span>Low <b id="mLow">—</b></span>
+          <span>Volume <b id="mVolume">—</b></span>
+        </div>
+        <div class="depth">
+          <div class="depthbox"><div class="muted">SELL ORDERS</div><div id="asks"></div></div>
+          <div class="depthbox"><div class="muted">BUY ORDERS</div><div id="bids"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <span class="muted">ORDER TICKET</span>
+        <h3 id="companyTitle">Choose a company</h3>
+        <label>Amount to invest (virtual ₹)</label>
+        <input id="investAmount" type="number" min="100" max="9900" step="100" value="1000">
+        <div class="row"><span>Available cash</span><b id="marketCash">₹10,000</b></div>
+        <div class="row"><span>Units</span><b id="marketUnits">0</b></div>
+        <div class="divider"></div>
+        <div class="actions">
+          <button class="btn buy" onclick="buyCompany()">BUY</button>
+          <button class="btn sell" onclick="sellCompany()">SELL</button>
+        </div>
+        <div class="info" style="margin-top:12px">This is paper trading. Your ₹10,000 is virtual cash. Every order changes your simulated portfolio, not a bank account.</div>
+        <div class="saved" id="saveStatus" style="margin-top:10px">✓ Progress is saved automatically in this browser.</div>
+      </div>
+
+      <div class="card section">
+        <h3 style="margin-top:0">Portfolio snapshot</h3>
+        <div class="row"><span>Invested</span><b id="investedValue">₹0</b></div>
+        <div class="row"><span>Unrealized P&L</span><b id="marketPnl">₹0</b></div>
+        <div class="progress"><span id="investedBar" style="width:0%"></span></div>
+        <p class="muted">The bar shows how much of your virtual ₹10,000 is currently invested.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="company-grid" id="companyGrid" style="margin-top:14px"></div>
+</div>
+
+<div class="section two">
+    <div class="card"><h2>🧪 Scenario buttons</h2><p class="muted">Instead of waiting for the market, deliberately test what happens.</p><div class="actions"><button class="btn alt" onclick="shock(1)">📈 Price rises</button><button class="btn alt" onclick="shock(-1)">📉 Price falls</button><button class="btn danger" onclick="shock(-4)">⚡ Crash scenario</button></div></div>
+    <div class="card"><h2>Why this is useful</h2><p class="muted">The simulator makes abstract ideas visible: position size, leverage, price movement, P&L and risk. The goal is not to “win” but to learn what each decision does.</p></div>
+  </div>
+</section>
+
+<section id="portfolio" class="page hidden">
+  <div class="hero"><div><h1>My learning portfolio</h1><p>A simple record of what you tried. Use it to discuss mistakes and patterns with your team or mentor.</p></div></div>
+  <div class="grid"><div class="card stat"><div class="muted">Balance</div><b id="pBalance">₹10,000</b></div><div class="card stat"><div class="muted">Trades</div><b id="pTrades">0</b></div><div class="card stat"><div class="muted">Wins</div><b id="wins">0</b></div><div class="card stat"><div class="muted">Losses</div><b id="losses">0</b></div></div>
+  <div class="card section"><h2>Trade history</h2><table class="table"><thead><tr><th>Side</th><th>Entry</th><th>Exit</th><th>Leverage</th><th>Virtual P&L</th><th>Lesson</th></tr></thead><tbody id="history"><tr><td colspan="6" class="muted">No practice trades yet.</td></tr></tbody></table></div>
+
+<div class="card section" id="companyHoldingsCard">
+  <h2>🏦 Company holdings</h2>
+  <p class="muted">Your simulated investments persist in this browser, so you can close the page and continue later.</p>
+  <table class="table"><thead><tr><th>Company</th><th>Units</th><th>Avg. Price</th><th>Current</th><th>Value</th><th>Virtual P&L</th></tr></thead>
+  <tbody id="companyHoldings"><tr><td colspan="6" class="muted">No company holdings yet.</td></tr></tbody></table>
+</div>
+</section>
+
+<section id="trust" class="page hidden">
+  <div class="hero"><div><h1>🛡️ Trust Centre</h1><p>Trust is part of the learning experience. The user should always know what is happening, what is simulated and what a decision could do.</p></div></div>
+  <div class="three section">
+    <div class="card"><h2>🔒 No real money</h2><p class="muted">The practice wallet is virtual. There is no deposit, withdrawal or real-money transaction in this prototype.</p><span class="badge">CLEAR</span></div>
+    <div class="card"><h2>👀 Explain first</h2><p class="muted">Important controls use plain-language explanations so first-time users aren't expected to know trading jargon.</p><span class="badge">BEGINNER FIRST</span></div>
+    <div class="card"><h2>⚠️ Show risk</h2><p class="muted">Leverage and simulated market shocks visibly change risk. The interface should never hide the downside.</p><span class="badge">TRANSPARENT</span></div>
+  </div>
+  <div class="card section"><h2>Before you ever consider real trading</h2><div class="info">Understand what you are trading, how leverage works, how fees affect returns, and how much you can lose. This simulator is for education and confidence-building, not a recommendation to trade.</div></div>
+</section>
+
+<section id="referral" class="page hidden">
+  <div class="hero"><div><h1>🎁 Refer &amp; Earn Free Months</h1><p>Share your MochaTrade link with someone else. Each successful referral gives you 1 month of free subscription.</p></div></div>
+  <div class="section two">
+    <div class="card">
+      <h2>Your referral</h2>
+      <p class="muted">The more people you refer, the more free subscription months you earn.</p>
+      <div class="grid" style="margin-top:14px">
+        <div class="card stat"><div class="muted">Successful referrals</div><b id="referralCount">0</b></div>
+        <div class="card stat"><div class="muted">Free months earned</div><b id="freeMonths">0</b></div>
+      </div>
+      <label style="margin-top:16px">Your referral link</label>
+      <div class="muted" style="margin-bottom:6px">If you are testing this HTML file locally, replace <b>REFERRAL_BASE_URL</b> with your live website URL before sharing.</div>
+      <input id="referralLink" type="text" readonly>
+      <div class="actions" style="margin-top:12px">
+        <button class="btn" onclick="copyReferralLink()">Copy link</button>
+        <button class="btn alt" onclick="shareReferralLink()">Share link</button>
+      </div>
+      <div id="referralShareStatus" class="referral-share-status"></div>
+      <div class="info" style="margin-top:12px">Each person who successfully joins through your referral link earns you 1 month of free subscription.</div>
+    </div>
+    <div class="card">
+      <h2>How it works</h2>
+      <div class="row"><span>1. Copy or share your link</span><span class="badge">STEP 1</span></div>
+      <div class="row"><span>2. Your friend joins through it</span><span class="badge">STEP 2</span></div>
+      <div class="row"><span>3. You earn 1 free month</span><span class="badge">+1 MONTH</span></div>
+      <div class="row"><span>4. Keep referring to earn more months</span><span class="badge">UNLIMITED</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="faq" class="page hidden">
+  <div class="hero"><div><h1>Questions? We've got you.</h1><p>Short answers for someone opening a trading simulator for the first time.</p></div></div>
+  <div class="faq section">
+    <details open><summary>Is this real trading?</summary><p>No. This prototype is a game-like learning environment. The balance is virtual and the trades are simulated.</p></details>
+    <details><summary>What is a long?</summary><p>In this simulator, going long means you are practicing a scenario where you expect the simulated asset price to rise.</p></details>
+    <details><summary>What is a short?</summary><p>Going short means you are practicing a scenario where you expect the simulated asset price to fall.</p></details>
+    <details><summary>Why does leverage exist?</summary><p>Leverage lets a smaller margin control a larger simulated position. It also makes gains and losses change faster, so it is an important concept to learn carefully.</p></details>
+    <details><summary>Can I lose real money?</summary><p>Not in this prototype. It has no real-money wallet or payment flow.</p></details>
+    <details><summary>What happens if I make a mistake?</summary><p>That's the point. Reset the simulation, try a different decision, and compare the outcomes. Mistakes are part of the learning loop.</p></details>
+    <details><summary>Is this financial advice?</summary><p>No. It is an educational simulation and should not be treated as investment advice.</p></details>
+  </div>
+</section>
+
+<footer>MochaTrade Learn Sandbox • Hackathon prototype • All market prices, balances and outcomes in this demo are simulated.</footer>
+</main></div>
+<div id="toast" class="toast hidden"></div>
+
+<div id="levelGate" class="level-gate-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="levelGateTitle">
+  <div class="level-gate">
+    <div class="level-gate-head">
+      <div>
+        <span class="pill">LEVEL COMPLETE</span>
+        <h2 id="levelGateTitle">Ready for the next level?</h2>
+        <p>Your ₹10,000 virtual practice round is complete. Choose what you want to do next instead of immediately resetting this level.</p>
+      </div>
+      <button class="level-close" onclick="closeLevelGate()" aria-label="Close">×</button>
+    </div>
+    <div class="level-options">
+      <div class="level-option">
+        <h3>💳 Pay ₹49 to Continue</h3>
+        <p>The next level stays locked until the ₹49 one-time payment is completed.</p>
+        <button class="btn" style="width:100%" onclick="showPlans()">View Plans &amp; Pay</button>
+      </div>
+      <div class="level-option">
+        <h3>↻ Reset This Level</h3>
+        <p>Start the current simulation again with a fresh virtual balance.</p>
+        <button class="btn alt" style="width:100%" onclick="resetCurrentLevel()">Reset</button>
+      </div>
+    </div>
+    <div id="subscriptionPlans" class="hidden" style="margin-top:22px">
+      <div class="divider"></div>
+      <h2 style="font-size:23px">Choose your subscription</h2>
+      <p class="muted">Plans below are for continuing beyond the current free simulation level.</p>
+      <div class="plan-grid">
+        <div class="plan featured">
+          <span class="badge">NEXT LEVEL</span><h3>Level Pass</h3><div class="price">₹49 <span class="muted">one-time</span></div>
+          <ul><li>Unlock the next practice level</li><li>Fresh virtual ₹10,000 wallet</li><li>Continue learning immediately</li></ul>
+          <button class="btn" style="width:100%" onclick="startPayment('level49')">Pay ₹49 &amp; Continue</button>
+        </div>
+        <div class="plan">
+          <span class="badge">MONTHLY</span><h3>Starter</h3><div class="price">₹199 <span class="muted">/ month</span></div>
+          <ul><li>Continue practice levels</li><li>Virtual portfolio history</li><li>Learning progress</li></ul>
+          <button class="btn alt" style="width:100%" onclick="startPayment('starter')">Pay &amp; Continue</button>
+        </div>
+        <div class="plan featured">
+          <span class="badge">POPULAR</span><h3>Pro Learner</h3><div class="price">₹499 <span class="muted">/ 3 months</span></div>
+          <ul><li>Continue all available levels</li><li>Advanced practice scenarios</li><li>3 months of access</li></ul>
+          <button class="btn" style="width:100%" onclick="startPayment('pro')">Pay &amp; Continue</button>
+        </div>
+        <div class="plan">
+          <span class="badge">YEARLY</span><h3>Annual</h3><div class="price">₹1,499 <span class="muted">/ year</span></div>
+          <ul><li>Year-long learning access</li><li>All available levels</li><li>Advanced practice content</li></ul>
+          <button class="btn alt" style="width:100%" onclick="startPayment('annual')">Pay &amp; Continue</button>
+        </div>
+      </div>
+      <div class="payment-note">The ₹49 Level Pass is a real-money purchase option once PAYMENT_LINKS.level49 is connected to your payment gateway. This prototype does not collect card, UPI, or bank details directly.</div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+const state={
+ page:'home', balance:10000, trades:0, wins:0, losses:0, pnl:0, lessons:new Set(),
+ price:9200000, basePrice:9200000, history:[], position:null, mood:35, prices:[]
+};
+for(let i=0;i<70;i++) state.prices.push(state.price*(1+(Math.random()-.5)*.018));
+
+function go(page){
+ document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));
+ document.getElementById(page).classList.remove('hidden');
+ document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
+ state.page=page; draw(); updateUI(); if(page==='portfolio'){ renderHoldings(); renderTerminalSummary(); }
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>go(b.dataset.page));
+
+function money(n){return '₹'+Math.round(n).toLocaleString('en-IN')}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.remove('hidden');clearTimeout(window.tt);window.tt=setTimeout(()=>t.classList.add('hidden'),2800)}
+function updateUI(){
+ const pct=Math.round(state.lessons.size/6*100);
+ document.getElementById('homeProgress').textContent=pct+'%';
+ document.getElementById('progressBar').style.width=pct+'%';
+ document.getElementById('tradeCount').textContent=state.trades;
+ document.getElementById('pnl').textContent=money(state.pnl);
+ document.getElementById('pnl').className=state.pnl>=0?'up':'down';
+ document.getElementById('confidence').textContent=pct<34?'Beginner':pct<84?'Getting comfortable':'Practice ready';
+ document.getElementById('balance').textContent=money(state.balance);
+ document.getElementById('pBalance').textContent=money(state.balance);
+ document.getElementById('pTrades').textContent=state.trades;
+ document.getElementById('wins').textContent=state.wins;
+ document.getElementById('losses').textContent=state.losses;
+ document.getElementById('price').textContent=money(state.price);
+ document.getElementById('levLabel').textContent=document.getElementById('lev').value+'x';
+ updateOrder(); draw(); renderHistory(); if(document.getElementById('companyHoldings')) renderHoldings();
+}
+function completeLesson(btn,n){
+ state.lessons.add(n); btn.textContent='✓ Completed'; btn.disabled=true; btn.style.opacity=.6;
+ toast('Lesson completed — nice!'); updateUI();
+}
+function updateOrder(){
+ const lev=+document.getElementById('lev').value, margin=Math.max(0,+document.getElementById('margin').value||0), size=margin*lev;
+ document.getElementById('levLabel').textContent=lev+'x'; document.getElementById('size').textContent=money(size);
+ const r=lev<=3?'Low':lev<=8?'Medium':'High';
+ const el=document.getElementById('risk');el.textContent=r;el.style.color=r==='High'?'#ff8ca1':r==='Medium'?'#ffd166':'#7ff1bd';
+}
+function placeTrade(side){
+ if(state.position){toast('Close your current practice position first.');return}
+ const margin=Math.max(100,+document.getElementById('margin').value||0);
+ const lev=+document.getElementById('lev').value;
+ if(margin>state.balance){toast('Your virtual margin is larger than your virtual balance.');return}
+ state.balance-=margin;
+ state.position={side,entry:state.price,margin,lev,size:margin*lev};
+ document.getElementById('positionBox').classList.remove('hidden');
+ document.getElementById('positionText').textContent=`${side} • Entry ${money(state.price)} • ${lev}x • Margin ${money(margin)}`;
+ state.trades++;
+ toast(`${side} practice position opened at ${money(state.price)}.`);
+ updateUI();
+}
+function currentPnl(){
+ if(!state.position)return 0;
+ const p=state.position, move=(state.price-p.entry)/p.entry;
+ return p.side==='LONG'?p.size*move:-p.size*move;
+}
+function closePosition(){
+ if(!state.position)return;
+ const p=state.position, pnl=currentPnl(), returned=p.margin+pnl;
+ state.balance+=Math.max(0,returned);
+ state.pnl+=pnl;
+ pnl>=0?state.wins++:state.losses++;
+ state.history.unshift({side:p.side,entry:p.entry,exit:state.price,lev:p.lev,pnl,lesson:pnl>=0?'Compare the price move':'Review leverage & direction'});
+ state.position=null;
+ document.getElementById('positionBox').classList.add('hidden');
+ toast(`Position closed. Virtual P&L: ${money(pnl)}.`);
+ updateUI();
+}
+function shock(dir){
+ const intensity=dir===-4?0.08:(dir>0?0.025:0.035);
+ state.price*=1+(dir===-4?-intensity:(dir>0?intensity:-intensity));
+ state.prices.push(state.price); state.prices.shift();
+ if(state.position && Math.abs(currentPnl())>state.position.margin*0.92){
+   const pnl=currentPnl(); state.balance+=Math.max(0,state.position.margin+pnl);
+   state.pnl+=pnl; pnl>=0?state.wins++:state.losses++;
+   state.history.unshift({side:state.position.side,entry:state.position.entry,exit:state.price,lev:state.position.lev,pnl,lesson:'Liquidation-risk event'});
+   state.position=null;document.getElementById('positionBox').classList.add('hidden');
+   toast('⚠️ Simulated liquidation event — review why leverage amplified the move.');
+ }else toast(dir===-4?'⚡ Crash scenario simulated. Watch your risk.':'Market moved — see how your position reacts.');
+ updateUI();
+}
+function setMood(v){state.mood=+v;document.getElementById('moodText').textContent=v<25?'Calm':v<60?'Balanced':'Volatile'}
+function renderHistory(){
+ const tb=document.getElementById('history');
+ if(!state.history.length){tb.innerHTML='<tr><td colspan="6" class="muted">No practice trades yet.</td></tr>';return}
+ tb.innerHTML=state.history.map(x=>`<tr><td>${x.side}</td><td>${money(x.entry)}</td><td>${money(x.exit)}</td><td>${x.lev}x</td><td class="${x.pnl>=0?'up':'down'}">${money(x.pnl)}</td><td>${x.lesson}</td></tr>`).join('');
+}
+function resetGame(){
+ marketCashState=10000; holdings={}; localStorage.removeItem("mochaHoldings"); localStorage.setItem("mochaCash","10000");
+ state.balance=10000;state.trades=0;state.wins=0;state.losses=0;state.pnl=0;state.history=[];state.position=null;state.price=9200000;state.prices=[];
+ for(let i=0;i<70;i++)state.prices.push(state.price*(1+(Math.random()-.5)*.018));
+ document.getElementById('positionBox').classList.add('hidden'); toast('Simulation reset. Fresh virtual ₹10,000.');
+ updateUI();
+}
+function draw(){
+ const c=document.getElementById('chart'); if(!c)return; const ctx=c.getContext('2d'),w=c.width,h=c.height;
+ ctx.clearRect(0,0,w,h);
+ ctx.strokeStyle='#d8c3aa';ctx.lineWidth=1;
+ for(let i=1;i<6;i++){let y=h*i/6;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
+ const vals=state.prices,min=Math.min(...vals),max=Math.max(...vals);
+ ctx.beginPath();
+ vals.forEach((v,i)=>{const x=i/(vals.length-1)*w,y=h-((v-min)/(max-min||1))*h*.78-h*.08;i?ctx.lineTo(x,y):ctx.moveTo(x,y)});
+ ctx.strokeStyle='#a8754a';ctx.lineWidth=4;ctx.stroke();
+}
+setInterval(()=>{
+ document.getElementById('clock').textContent=new Date().toLocaleTimeString();
+ if(state.page==='trade' && !state.position){
+   const vol=(state.mood/100)*.008+.0015;
+   state.price*=1+(Math.random()-.5)*vol;state.prices.push(state.price);state.prices.shift();updateUI();
+ }
+},1000);
+updateUI();
+</script>
+
+<script id="real-market-js">
+const companies=[
+ {name:"Apple",ticker:"AAPL",price:230,drift:.00015,vol:.012},
+ {name:"Tesla",ticker:"TSLA",price:380,drift:.00005,vol:.018},
+ {name:"NVIDIA",ticker:"NVDA",price:145,drift:.0002,vol:.020},
+ {name:"Microsoft",ticker:"MSFT",price:510,drift:.0001,vol:.010},
+ {name:"Amazon",ticker:"AMZN",price:235,drift:.00012,vol:.014},
+ {name:"Alphabet",ticker:"GOOGL",price:250,drift:.0001,vol:.012}
+];
+let selectedCompany=companies[0];
+let companyPrices={};
+let holdings=JSON.parse(localStorage.getItem("mochaHoldings")||"{}");
+let savedCash=Number(localStorage.getItem("mochaCash"));
+if(!Number.isFinite(savedCash) || savedCash < 100) savedCash=10000;
+let marketCashState=savedCash;
+
+companies.forEach(c=>companyPrices[c.ticker]=Array.from({length:60},()=>c.price*(1+(Math.random()-.5)*.04)));
+
+function marketMoney(n){return '₹'+Math.max(0,n).toLocaleString('en-IN',{maximumFractionDigits:2})}
+function saveMarket(){
+ marketCashState=Math.max(100,Number(marketCashState)||10000);
+ localStorage.setItem("mochaHoldings",JSON.stringify(holdings));
+ localStorage.setItem("mochaCash",String(marketCashState));
+ document.getElementById("saveStatus").textContent="✓ Progress saved automatically in this browser.";
+}
+const REFERRAL_BASE_URL = window.MOCHAtRADE_REFERRAL_URL || (location.protocol==='file:' ? 'https://your-mochatrade-domain.com/' : location.href.split('?')[0].split('#')[0]);
+
+function getReferralCode(){
+  let code=localStorage.getItem('mochaReferralCode');
+  if(!code){
+    code='MT-'+Math.random().toString(36).slice(2,8).toUpperCase();
+    localStorage.setItem('mochaReferralCode',code);
+  }
+  return code;
+}
+function referralUrl(){
+  const base=REFERRAL_BASE_URL.replace(/\?$/, '');
+  return base+'?ref='+encodeURIComponent(getReferralCode());
+}
+const REFERRAL_RESET_VERSION = '3';
+if(localStorage.getItem('mochaReferralResetVersion') !== REFERRAL_RESET_VERSION){
+  localStorage.setItem('mochaReferralCount','0');
+  localStorage.setItem('mochaReferralResetVersion',REFERRAL_RESET_VERSION);
+}
+
+function updateReferralUI(){
+  const count=Number(localStorage.getItem('mochaReferralCount')||0);
+  const months=count;
+  const countEl=document.getElementById('referralCount'), monthsEl=document.getElementById('freeMonths'), linkEl=document.getElementById('referralLink');
+  if(countEl)countEl.textContent=count;
+  if(monthsEl)monthsEl.textContent=months;
+  if(linkEl)linkEl.value=referralUrl();
+}
+function referralShareMessage(){
+  return 'Join me on MochaTrade and learn markets with virtual money. Use my referral link to get started: '+referralUrl();
+}
+async function copyReferralLink(){
+  const link=referralUrl();
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(link);
+    }else{
+      const input=document.getElementById('referralLink'); input.value=link; input.focus(); input.select();
+      if(!document.execCommand('copy')) throw new Error('copy failed');
+    }
+    const status=document.getElementById('referralShareStatus'); if(status)status.textContent='✓ Referral link copied. Send it to your friend.';
+    toast('Referral link copied.');
+  }catch(e){
+    const input=document.getElementById('referralLink'); input.value=link; input.focus(); input.select();
+    const status=document.getElementById('referralShareStatus'); if(status)status.textContent='Select the link above and copy it to share.';
+    toast('Select the referral link and copy it manually.');
+  }
+}
+function recordReferralShare(){
+  const count=Number(localStorage.getItem('mochaReferralCount')||0)+1;
+  localStorage.setItem('mochaReferralCount',String(count));
+  updateReferralUI();
+  const status=document.getElementById('referralShareStatus');
+  if(status)status.textContent='✓ Share completed. +1 free subscription month has been added.';
+  toast('Share completed — +1 free subscription month.');
+}
+
+async function shareReferralLink(){
+  const link=referralUrl();
+  try{
+    if(navigator.share){
+      await navigator.share({title:'Join me on MochaTrade',text:referralShareMessage(),url:link});
+      recordReferralShare();
+    }else{
+      await copyReferralLink();
+      const status=document.getElementById('referralShareStatus'); if(status)status.textContent='✓ Link copied. No referral is counted because the browser cannot confirm a completed share.';
+    }
+  }catch(e){
+    const status=document.getElementById('referralShareStatus'); if(status)status.textContent='Share was cancelled. No referral was counted.';
+  }
+}
+function handleIncomingReferral(){
+  const ref=new URLSearchParams(location.search).get('ref');
+  if(!ref || ref===getReferralCode())return;
+  localStorage.setItem('mochaPendingReferral',ref);
+  const banner=document.createElement('div');
+  banner.className='referral-banner';
+  banner.innerHTML='<b>🎁 You were invited to MochaTrade.</b><br>Join through this referral to support your referrer. In a production app, the server would verify the signup and credit 1 free month.';
+  const referralPage=document.getElementById('referral');
+  if(referralPage && !document.getElementById('incomingReferralBanner')){banner.id='incomingReferralBanner';referralPage.querySelector('.hero').after(banner);}
+}
+updateReferralUI();
+handleIncomingReferral();
+
+function renderCompanies(){
+ const g=document.getElementById("companyGrid"); if(!g)return;
+ g.innerHTML=companies.map(c=>{
+   const arr=companyPrices[c.ticker], now=arr[arr.length-1], old=arr[Math.max(0,arr.length-12)];
+   const ch=(now/old-1)*100;
+   return `<div class="company" onclick="selectCompany('${c.ticker}')">
+    <div class="ticker">${c.ticker} <span class="muted">${c.name}</span></div>
+    <div class="cp">${marketMoney(now)}</div>
+    <div class="change ${ch>=0?'up':'down'}">${ch>=0?'+':''}${ch.toFixed(2)}% simulated</div>
+   </div>`
+ }).join("");
+}
+function selectCompany(ticker){
+ selectedCompany=companies.find(c=>c.ticker===ticker)||companies[0];
+ renderSelectedCompany();
+}
+function renderSelectedCompany(){
+ const c=selectedCompany, arr=companyPrices[c.ticker], p=arr[arr.length-1], old=arr[Math.max(0,arr.length-12)];
+ const ch=(p/old-1)*100, h=holdings[c.ticker];
+ document.getElementById("selectedCompany").textContent=`${c.ticker} • ${c.name}`;
+ document.getElementById("companyTitle").textContent=`${c.name} • ${c.ticker}`;
+ document.getElementById("companyPrice").textContent=marketMoney(p);
+ const cc=document.getElementById("companyChange");cc.textContent=`${ch>=0?'+':''}${ch.toFixed(2)}%`;cc.className=ch>=0?'up':'down';
+ document.getElementById("marketCash").textContent=marketMoney(marketCashState);
+ document.getElementById("marketUnits").textContent=h?Number(h.units).toFixed(4):"0";
+ const open=arr[0], high=Math.max(...arr), low=Math.min(...arr);
+ document.getElementById("mOpen").textContent=marketMoney(open);
+ document.getElementById("mHigh").textContent=marketMoney(high);
+ document.getElementById("mLow").textContent=marketMoney(low);
+ document.getElementById("mVolume").textContent=(Math.round(120000+Math.random()*80000)).toLocaleString("en-IN");
+ const rows=[.004,.002,.001];
+ document.getElementById("asks").innerHTML=rows.map(x=>`<div class="depthrow ask"><span>${marketMoney(p*(1+x))}</span><span>${(20+Math.random()*80).toFixed(2)}</span></div>`).join("");
+ document.getElementById("bids").innerHTML=rows.map(x=>`<div class="depthrow bid"><span>${marketMoney(p*(1-x))}</span><span>${(20+Math.random()*80).toFixed(2)}</span></div>`).join("");
+ drawCompanyChart();renderHoldings();renderTerminalSummary();
+}
+function renderTerminalSummary(){
+ let invested=0, pnl=0;
+ Object.entries(holdings).forEach(([ticker,h])=>{
+   const current=companyPrices[ticker]?.at(-1)||h.avg;
+   invested+=h.units*current; pnl+=h.units*(current-h.avg);
+ });
+ const total=marketCashState+invested;
+ document.getElementById("terminalCash").textContent=marketMoney(marketCashState);
+ document.getElementById("terminalPortfolio").textContent=marketMoney(invested);
+ document.getElementById("terminalTotal").textContent=marketMoney(total);
+ document.getElementById("investedValue").textContent=marketMoney(invested);
+ const pnlEl=document.getElementById("marketPnl");pnlEl.textContent=marketMoney(pnl);pnlEl.className=pnl>=0?'up':'down';
+ document.getElementById("investedBar").style.width=Math.min(100,invested/10000*100)+"%";
+}
+function buyCompany(){
+ const c=selectedCompany,p=companyPrices[c.ticker].at(-1), amount=Number(document.getElementById("investAmount").value);
+ if(amount<100){toast("Start with at least ₹100 of virtual money.");return}
+ const minimumRemainingCash=100;
+ if(amount>marketCashState-minimumRemainingCash){
+   toast(`Keep at least ${marketMoney(minimumRemainingCash)} of virtual cash available. Lower the order amount.`);
+   return;
+ }
+ const units=amount/p,h=holdings[c.ticker];
+ if(h){
+   const total=h.units+units;h.avg=(h.units*h.avg+amount)/total;h.units=total;
+ }else holdings[c.ticker]={units,avg:p};
+ marketCashState-=amount;saveMarket();renderSelectedCompany();toast(`Bought ${units.toFixed(4)} virtual ${c.ticker}.`);
+}
+function sellCompany(){
+ const c=selectedCompany,p=companyPrices[c.ticker].at(-1), amount=Number(document.getElementById("investAmount").value),h=holdings[c.ticker];
+ if(!h||h.units<=0){toast("You do not hold this company yet.");return}
+ const units=Math.min(h.units,amount/p), proceeds=units*p;
+ h.units-=units;marketCashState+=proceeds;
+ if(h.units<.0000001) delete holdings[c.ticker];
+ saveMarket();renderSelectedCompany();toast(`Sold ${units.toFixed(4)} virtual ${c.ticker}.`);
+}
+function renderHoldings(){
+ const tb=document.getElementById("companyHoldings"); if(!tb)return;
+ const rows=Object.entries(holdings).map(([ticker,h])=>{
+   const p=companyPrices[ticker].at(-1),value=h.units*p,pnl=value-h.units*h.avg;
+   return `<tr><td>${ticker}</td><td>${h.units.toFixed(4)}</td><td>${marketMoney(h.avg)}</td><td>${marketMoney(p)}</td><td>${marketMoney(value)}</td><td class="${pnl>=0?'up':'down'}">${marketMoney(pnl)}</td></tr>`;
+ });
+ tb.innerHTML=rows.length?rows.join(""):`<tr><td colspan="6" class="muted">No company holdings yet.</td></tr>`;
+}
+function drawCompanyChart(){
+ const c=document.getElementById("companyChart");if(!c)return;
+ const ctx=c.getContext("2d"),w=c.width,h=c.height,vals=companyPrices[selectedCompany.ticker],min=Math.min(...vals),max=Math.max(...vals);
+ ctx.clearRect(0,0,w,h);ctx.strokeStyle='#d8c3aa';ctx.lineWidth=1;
+ for(let i=1;i<5;i++){let y=h*i/5;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
+ ctx.beginPath();vals.forEach((v,i)=>{let x=i/(vals.length-1)*w,y=h-((v-min)/(max-min||1))*h*.78-h*.08;i?ctx.lineTo(x,y):ctx.moveTo(x,y)});
+ ctx.strokeStyle='#b98b62';ctx.lineWidth=4;ctx.stroke();
+}
+setInterval(()=>{
+ companies.forEach(c=>{
+   const last=companyPrices[c.ticker].at(-1), next=last*(1+c.drift+(Math.random()-.5)*c.vol);
+   companyPrices[c.ticker].push(next);companyPrices[c.ticker].shift();
+ });
+ renderCompanies();renderSelectedCompany();renderTerminalSummary();
+},2500);
+
+renderCompanies();renderSelectedCompany();renderTerminalSummary();
+</script>
+
+<script id="level-gate-js">
+/* Added level-gate layer: the existing simulation/reset code remains intact. */
+const existingResetGame = window.resetGame;
+let currentLevel = Number(localStorage.getItem('mochaLevel') || 1);
+const PAYMENT_LINKS = {
+  level49: '',
+  starter: '',
+  pro: '',
+  annual: ''
+};
+function openLevelGate(){
+  document.getElementById('levelGate').classList.remove('hidden');
+  document.getElementById('subscriptionPlans').classList.add('hidden');
+}
+function closeLevelGate(){document.getElementById('levelGate').classList.add('hidden');}
+function showPlans(){document.getElementById('subscriptionPlans').classList.remove('hidden');}
+function resetCurrentLevel(){closeLevelGate();existingResetGame();}
+function startPayment(plan){
+  const url=PAYMENT_LINKS[plan];
+  if(url){window.location.href=url;return;}
+  if(plan==='level49'){
+    toast('₹49 payment is required to unlock the next level. Connect your live payment gateway URL in PAYMENT_LINKS.level49.');
+    return;
+  }
+  toast('Payment checkout is not connected yet. Add your live payment/checkout URL to PAYMENT_LINKS.');
+}
+/* The existing Reset button now opens the choice window rather than resetting immediately. */
+window.resetGame=openLevelGate;
+</script>
+</body>
+</html>
