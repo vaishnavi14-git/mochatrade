@@ -484,11 +484,43 @@ input[type=number],select{background:#f4e8d8;color:#3b281c;border-color:#d7c1a7}
 
 
 <script>
+const PROGRESS_STORAGE_KEY='mochaLearningProgress';
 const state={
  page:'home', balance:10000, trades:0, wins:0, losses:0, pnl:0, lessons:new Set(),
  price:9200000, basePrice:9200000, history:[], position:null, mood:35, prices:[]
 };
-for(let i=0;i<70;i++) state.prices.push(state.price*(1+(Math.random()-.5)*.018));
+function saveProgress(){
+ try{
+  localStorage.setItem(PROGRESS_STORAGE_KEY,JSON.stringify({
+   page:state.page,balance:state.balance,trades:state.trades,wins:state.wins,losses:state.losses,pnl:state.pnl,
+   lessons:[...state.lessons],price:state.price,basePrice:state.basePrice,history:state.history,position:state.position,
+   mood:state.mood,prices:state.prices
+  }));
+ }catch(e){}
+}
+function loadProgress(){
+ try{
+  const saved=JSON.parse(localStorage.getItem(PROGRESS_STORAGE_KEY)||'null');
+  if(!saved)return;
+  if(Number.isFinite(saved.balance))state.balance=saved.balance;
+  if(Number.isFinite(saved.trades))state.trades=saved.trades;
+  if(Number.isFinite(saved.wins))state.wins=saved.wins;
+  if(Number.isFinite(saved.losses))state.losses=saved.losses;
+  if(Number.isFinite(saved.pnl))state.pnl=saved.pnl;
+  if(Array.isArray(saved.lessons))state.lessons=new Set(saved.lessons.map(Number));
+  if(Number.isFinite(saved.price))state.price=saved.price;
+  if(Number.isFinite(saved.basePrice))state.basePrice=saved.basePrice;
+  if(Array.isArray(saved.history))state.history=saved.history;
+  if(saved.position && typeof saved.position==='object')state.position=saved.position;
+  if(Number.isFinite(saved.mood))state.mood=saved.mood;
+  if(Array.isArray(saved.prices) && saved.prices.length>1)state.prices=saved.prices;
+  if(saved.page && document.getElementById(saved.page))state.page=saved.page;
+ }catch(e){}
+}
+loadProgress();
+if(!state.prices.length){
+ for(let i=0;i<70;i++) state.prices.push(state.price*(1+(Math.random()-.5)*.018));
+}
 
 function go(page){
  document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));
@@ -516,7 +548,7 @@ function updateUI(){
  document.getElementById('losses').textContent=state.losses;
  document.getElementById('price').textContent=money(state.price);
  document.getElementById('levLabel').textContent=document.getElementById('lev').value+'x';
- updateOrder(); draw(); renderHistory(); if(document.getElementById('companyHoldings')) renderHoldings();
+ updateOrder(); draw(); renderHistory(); if(document.getElementById('companyHoldings')) renderHoldings(); saveProgress();
 }
 function completeLesson(btn,n){
  state.lessons.add(n); btn.textContent='✓ Completed'; btn.disabled=true; btn.style.opacity=.6;
@@ -571,7 +603,7 @@ function shock(dir){
  }else toast(dir===-4?'⚡ Crash scenario simulated. Watch your risk.':'Market moved — see how your position reacts.');
  updateUI();
 }
-function setMood(v){state.mood=+v;document.getElementById('moodText').textContent=v<25?'Calm':v<60?'Balanced':'Volatile'}
+function setMood(v){state.mood=+v;document.getElementById('moodText').textContent=v<25?'Calm':v<60?'Balanced':'Volatile';saveProgress()}
 function renderHistory(){
  const tb=document.getElementById('history');
  if(!state.history.length){tb.innerHTML='<tr><td colspan="6" class="muted">No practice trades yet.</td></tr>';return}
@@ -579,7 +611,7 @@ function renderHistory(){
 }
 function resetGame(){
  marketCashState=10000; holdings={}; localStorage.removeItem("mochaHoldings"); localStorage.setItem("mochaCash","10000");
- state.balance=10000;state.trades=0;state.wins=0;state.losses=0;state.pnl=0;state.history=[];state.position=null;state.price=9200000;state.prices=[];
+ state.balance=10000;state.trades=0;state.wins=0;state.losses=0;state.pnl=0;state.history=[];state.position=null;state.price=9200000;state.basePrice=9200000;state.mood=35;state.prices=[];
  for(let i=0;i<70;i++)state.prices.push(state.price*(1+(Math.random()-.5)*.018));
  document.getElementById('positionBox').classList.add('hidden'); toast('Simulation reset. Fresh virtual ₹10,000.');
  updateUI();
@@ -593,6 +625,12 @@ function draw(){
  ctx.beginPath();
  vals.forEach((v,i)=>{const x=i/(vals.length-1)*w,y=h-((v-min)/(max-min||1))*h*.78-h*.08;i?ctx.lineTo(x,y):ctx.moveTo(x,y)});
  ctx.strokeStyle='#a8754a';ctx.lineWidth=4;ctx.stroke();
+}
+if(state.position){
+ const box=document.getElementById('positionBox');
+ if(box)box.classList.remove('hidden');
+ const pt=document.getElementById('positionText');
+ if(pt)pt.textContent=`${state.position.side} • Entry ${money(state.position.entry)} • ${state.position.lev}x • Margin ${money(state.position.margin)}`;
 }
 setInterval(()=>{
  document.getElementById('clock').textContent=new Date().toLocaleTimeString();
@@ -809,6 +847,12 @@ setInterval(()=>{
 },2500);
 
 renderCompanies();renderSelectedCompany();renderTerminalSummary();
+if(state.page && document.getElementById(state.page)){
+ document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));
+ document.getElementById(state.page).classList.remove('hidden');
+ document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===state.page));
+}
+saveProgress();
 </script>
 
 <script id="level-gate-js">
